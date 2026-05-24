@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="bg">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -28,11 +28,10 @@
         font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
 
-      .phone-shell {
-        width: min(100%, 460px);
-        min-height: 100vh;
+      main {
+        width: min(100%, 520px);
         margin: 0 auto;
-        padding: 28px 24px 36px;
+        padding: 28px 20px 36px;
       }
 
       .eyebrow {
@@ -45,51 +44,58 @@
 
       h1 {
         margin: 0;
-        font-size: 42px;
-        line-height: 1;
+        font-size: 40px;
         letter-spacing: 0;
       }
 
-      .subtitle {
-        margin: 16px 0 24px;
+      .subtitle,
+      .status {
         color: var(--muted);
-        font-size: 16px;
         line-height: 1.5;
       }
 
       .panel,
       .score-card {
+        margin-top: 18px;
         border-radius: 8px;
       }
 
       .panel {
         display: grid;
         gap: 12px;
-        margin-bottom: 20px;
         padding: 16px;
         background: var(--panel);
       }
 
       .panel-title {
-        margin: 0 0 2px;
+        margin: 0;
         font-size: 18px;
         font-weight: 800;
       }
 
-      .metric {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+      .row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      input {
+        width: 100%;
         min-height: 46px;
-        padding: 12px;
         border: 1px solid var(--line);
         border-radius: 8px;
         background: var(--panel-dark);
-        color: var(--muted);
-      }
-
-      .metric strong {
         color: var(--text);
+        font: inherit;
+        padding: 10px 12px;
       }
 
       button {
@@ -99,102 +105,128 @@
         background: var(--accent);
         color: #111827;
         font: inherit;
-        font-size: 16px;
         font-weight: 900;
         cursor: pointer;
       }
 
-      button:active {
-        transform: translateY(1px);
-      }
-
       .score-card {
-        display: grid;
+        display: none;
         gap: 6px;
         padding: 18px;
         border: 1px solid var(--accent);
       }
 
-      .score-label {
-        color: var(--muted);
-        font-size: 14px;
+      .score-card.visible {
+        display: grid;
       }
 
       .score-value {
-        font-size: 36px;
+        font-size: 34px;
         font-weight: 900;
       }
 
       .score-hint {
         color: var(--accent);
-        font-size: 14px;
         font-weight: 800;
       }
 
-      .plan {
-        display: none;
-        margin-top: 20px;
-        padding: 16px;
-        border-radius: 8px;
-        background: #172033;
-      }
-
-      .plan.visible {
-        display: block;
-      }
-
-      .plan h2 {
-        margin: 0 0 12px;
-        font-size: 18px;
-      }
-
-      .plan ul {
-        display: grid;
-        gap: 8px;
+      ul {
         margin: 0;
         padding-left: 18px;
         color: var(--muted);
-        line-height: 1.4;
+        line-height: 1.5;
       }
     </style>
   </head>
   <body>
-    <main class="phone-shell">
+    <main>
       <p class="eyebrow">AI FITNESS PLATFORM</p>
       <h1>FitRank AI</h1>
-      <p class="subtitle">
-        Enter your stats, see your FitRank score, and generate a realistic weekly plan.
-      </p>
+      <p class="subtitle">Профил, постижения, FitRank резултат и персонален план.</p>
 
-      <section class="panel" aria-label="Quick assessment">
-        <p class="panel-title">Quick Assessment</p>
-        <div class="metric"><span>Pushups</span><strong>35</strong></div>
-        <div class="metric"><span>Squats</span><strong>55</strong></div>
-        <div class="metric"><span>Plank</span><strong>120s</strong></div>
-        <button id="generate" type="button">Generate Plan</button>
+      <section class="panel">
+        <p class="panel-title">Профил</p>
+        <label>Име <input id="name" /></label>
+        <label>Имейл <input id="email" /></label>
+        <div class="row">
+          <label>Кг <input id="weight" type="number" /></label>
+          <label>Ръст <input id="height" type="number" /></label>
+          <label>Възраст <input id="age" type="number" /></label>
+        </div>
+        <button id="save">Запази профил</button>
       </section>
 
-      <section class="score-card" aria-label="FitRank score">
-        <span class="score-label">FitRank Score</span>
-        <span class="score-value">87 / 100</span>
-        <span class="score-hint">Top 15% for your category</span>
+      <section class="panel">
+        <p class="panel-title">Постижения</p>
+        <label>Лицеви опори <input id="pushups" type="number" /></label>
+        <label>Лежанка <input id="bench" type="number" /></label>
+        <label>Набирания <input id="pullups" type="number" /></label>
+        <label>Клек <input id="squat" type="number" /></label>
+        <label>Мъртва тяга <input id="deadlift" type="number" /></label>
+        <button id="generate">Generate Plan</button>
       </section>
 
-      <section id="plan" class="plan" aria-label="Generated plan">
-        <h2>Weekly Plan</h2>
+      <p id="status" class="status">Не си влязъл в профил.</p>
+
+      <section id="scoreCard" class="score-card">
+        <span>FitRank Score</span>
+        <span id="score" class="score-value">0 / 100</span>
+        <span id="label" class="score-hint">Beginner</span>
+      </section>
+
+      <section id="plan" class="panel" hidden>
+        <p class="panel-title">Седмичен план</p>
         <ul>
-          <li>Day 1: full-body strength and core</li>
-          <li>Day 2: zone 2 cardio and mobility</li>
-          <li>Day 3: lower-body strength</li>
-          <li>Day 4: rest or light walk</li>
-          <li>Day 5: upper-body strength and intervals</li>
+          <li>Ден 1: лежанка, лицеви опори и набирания</li>
+          <li>Ден 2: клек, корем и мобилност</li>
+          <li>Ден 4: мъртва тяга, гръб и набирания</li>
+          <li>Ден 5: цялостна силова тренировка</li>
         </ul>
       </section>
     </main>
 
     <script>
+      const stored = JSON.parse(localStorage.getItem("fitrank_profile") || "null");
+      if (stored) {
+        document.getElementById("name").value = stored.name || "";
+        document.getElementById("email").value = stored.email || "";
+        document.getElementById("weight").value = stored.weightKg || "";
+        document.getElementById("height").value = stored.heightCm || "";
+        document.getElementById("age").value = stored.age || "";
+        document.getElementById("status").textContent = `Влязъл като ${stored.name || stored.email}`;
+      }
+
+      document.getElementById("save").addEventListener("click", () => {
+        const profile = {
+          name: document.getElementById("name").value,
+          email: document.getElementById("email").value,
+          weightKg: document.getElementById("weight").value,
+          heightCm: document.getElementById("height").value,
+          age: document.getElementById("age").value
+        };
+        localStorage.setItem("fitrank_profile", JSON.stringify(profile));
+        document.getElementById("status").textContent = `Влязъл като ${profile.name || profile.email}`;
+      });
+
       document.getElementById("generate").addEventListener("click", () => {
-        document.getElementById("plan").classList.add("visible");
+        const weight = Math.max(Number(document.getElementById("weight").value), 1);
+        const upper = Math.min(
+          100,
+          Number(document.getElementById("pushups").value) * 1.2
+            + Number(document.getElementById("pullups").value) * 5
+            + (Number(document.getElementById("bench").value) / weight) * 30
+        );
+        const lower = Math.min(
+          100,
+          (Number(document.getElementById("squat").value) / weight) * 35
+            + (Number(document.getElementById("deadlift").value) / weight) * 40
+        );
+        const score = Math.round(Math.max(0, Math.min(100, upper * 0.55 + lower * 0.45)));
+        const label = score >= 85 ? "Top 15%" : score >= 70 ? "Top 35%" : score >= 50 ? "Average" : "Beginner";
+        document.getElementById("score").textContent = `${score} / 100`;
+        document.getElementById("label").textContent = label;
+        document.getElementById("scoreCard").classList.add("visible");
+        document.getElementById("plan").hidden = false;
       });
     </script>
   </body>

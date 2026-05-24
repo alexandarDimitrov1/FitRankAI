@@ -15,9 +15,10 @@ class FitRankTests(unittest.TestCase):
             ),
             exercise_results=ExerciseResults(
                 pushups=35,
-                squats=55,
-                plank_seconds=120,
-                run_minutes=11,
+                bench_kg=85,
+                pullups=8,
+                squat_kg=110,
+                deadlift_kg=140,
             ),
         )
 
@@ -37,9 +38,10 @@ class FitRankTests(unittest.TestCase):
             ),
             exercise_results=ExerciseResults(
                 pushups=5,
-                squats=10,
-                plank_seconds=30,
-                run_minutes=20,
+                bench_kg=30,
+                pullups=0,
+                squat_kg=40,
+                deadlift_kg=50,
             ),
             goal="Reach advanced score",
             deadline_weeks=2,

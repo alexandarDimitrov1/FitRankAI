@@ -12,23 +12,32 @@ ACTIVITY_MULTIPLIERS = {
 def calculate_fitrank(assessment: FitnessAssessment) -> dict:
     exercise = assessment.exercise_results
     biometrics = assessment.biometrics
+    bodyweight = max(biometrics.weight_kg, 1)
 
-    strength = min(100, exercise.pushups * 1.8 + exercise.squats * 1.1)
-    endurance = min(100, exercise.plank_seconds / 2.4)
-    cardio = max(0, min(100, 120 - exercise.run_minutes * 6))
+    upper_body = min(
+        100,
+        exercise.pushups * 1.2
+        + exercise.pullups * 5
+        + (exercise.bench_kg / bodyweight) * 30,
+    )
+    lower_body = min(
+        100,
+        (exercise.squat_kg / bodyweight) * 35
+        + (exercise.deadlift_kg / bodyweight) * 40,
+    )
     age_adjustment = 1.0 if biometrics.age <= 30 else max(0.82, 1 - (biometrics.age - 30) * 0.006)
     activity_multiplier = ACTIVITY_MULTIPLIERS.get(biometrics.activity_level.lower(), 1.0)
 
-    raw_score = (strength * 0.4 + endurance * 0.25 + cardio * 0.35)
+    raw_score = upper_body * 0.55 + lower_body * 0.45
     score = round(max(0, min(100, raw_score * age_adjustment * activity_multiplier)))
 
     return {
         "score": score,
         "percentileLabel": _percentile_label(score),
         "breakdown": {
-            "strength": round(strength),
-            "endurance": round(endurance),
-            "cardio": round(cardio),
+            "upperBody": round(upper_body),
+            "lowerBody": round(lower_body),
+            "bodyweight": round(bodyweight),
         },
     }
 

@@ -2,7 +2,12 @@ from flask import Blueprint, jsonify, request
 
 from .models import Biometrics, ExerciseResults, FitnessAssessment
 from .services.fitrank import calculate_fitrank, evaluate_goal
-from .services.firebase_store import get_firebase_status, save_plan_snapshot
+from .services.firebase_store import (
+    get_firebase_status,
+    load_user_profile,
+    save_plan_snapshot,
+    save_user_profile,
+)
 from .services.plan_generator import build_plan_response
 
 api = Blueprint("api", __name__)
@@ -40,6 +45,24 @@ def plan():
     return jsonify(plan_result)
 
 
+@api.post("/api/profile")
+def profile():
+    payload = request.get_json(silent=True) or {}
+    profile_payload = payload.get("profile", payload)
+    user_id = request.headers.get("X-FitRank-User") or profile_payload.get("email")
+    return jsonify(
+        {
+            "profile": profile_payload,
+            "storage": save_user_profile(user_id or "demo-user", profile_payload),
+        }
+    )
+
+
+@api.get("/api/profile/<user_id>")
+def get_profile(user_id: str):
+    return jsonify(load_user_profile(user_id))
+
+
 def _parse_assessment(payload: dict) -> FitnessAssessment:
     biometrics = payload.get("biometrics", {})
     exercise_results = payload.get("exerciseResults", {})
@@ -53,9 +76,10 @@ def _parse_assessment(payload: dict) -> FitnessAssessment:
         ),
         exercise_results=ExerciseResults(
             pushups=int(exercise_results.get("pushups", 0)),
-            squats=int(exercise_results.get("squats", 0)),
-            plank_seconds=int(exercise_results.get("plankSeconds", 0)),
-            run_minutes=float(exercise_results.get("runMinutes", 15)),
+            bench_kg=float(exercise_results.get("benchKg", 0)),
+            pullups=int(exercise_results.get("pullups", 0)),
+            squat_kg=float(exercise_results.get("squatKg", 0)),
+            deadlift_kg=float(exercise_results.get("deadliftKg", 0)),
         ),
         goal=payload.get("goal"),
         deadline_weeks=(

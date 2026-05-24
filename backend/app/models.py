@@ -12,9 +12,10 @@ class Biometrics:
 @dataclass(frozen=True)
 class ExerciseResults:
     pushups: int
-    squats: int
-    plank_seconds: int
-    run_minutes: float
+    bench_kg: float
+    pullups: int
+    squat_kg: float
+    deadlift_kg: float
 
 
 @dataclass(frozen=True)

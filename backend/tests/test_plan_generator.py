@@ -16,9 +16,10 @@ class PlanGeneratorTests(unittest.TestCase):
             ),
             exercise_results=ExerciseResults(
                 pushups=35,
-                squats=55,
-                plank_seconds=120,
-                run_minutes=11,
+                bench_kg=85,
+                pullups=8,
+                squat_kg=110,
+                deadlift_kg=140,
             ),
             goal="Build strength and improve conditioning",
             deadline_weeks=8,
