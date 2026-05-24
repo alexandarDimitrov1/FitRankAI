@@ -29,7 +29,7 @@
       }
 
       main {
-        width: min(100%, 520px);
+        width: min(100%, 560px);
         margin: 0 auto;
         padding: 28px 20px 36px;
       }
@@ -49,13 +49,48 @@
       }
 
       .subtitle,
-      .status {
+      .status,
+      .hint {
         color: var(--muted);
         line-height: 1.5;
       }
 
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      .step {
+        min-height: 36px;
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .step.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #111827;
+      }
+
+      .screen {
+        display: none;
+      }
+
+      .screen.active {
+        display: block;
+      }
+
       .panel,
-      .score-card {
+      .score-card,
+      .profile-bar {
         margin-top: 18px;
         border-radius: 8px;
       }
@@ -65,6 +100,27 @@
         gap: 12px;
         padding: 16px;
         background: var(--panel);
+      }
+
+      .profile-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 16px;
+        background: var(--panel);
+      }
+
+      .profile-name {
+        margin: 0;
+        font-size: 17px;
+        font-weight: 800;
+      }
+
+      .profile-email {
+        margin: 3px 0 0;
+        color: #94a3b8;
+        font-size: 13px;
       }
 
       .panel-title {
@@ -109,15 +165,19 @@
         cursor: pointer;
       }
 
+      .secondary {
+        min-height: 42px;
+        border: 1px solid #475569;
+        background: transparent;
+        color: var(--muted);
+        padding: 0 14px;
+      }
+
       .score-card {
-        display: none;
+        display: grid;
         gap: 6px;
         padding: 18px;
         border: 1px solid var(--accent);
-      }
-
-      .score-card.visible {
-        display: grid;
       }
 
       .score-value {
@@ -130,11 +190,43 @@
         font-weight: 800;
       }
 
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .metric {
+        min-height: 76px;
+        display: grid;
+        align-content: center;
+        gap: 4px;
+        padding: 10px;
+        border-radius: 8px;
+        background: var(--panel-dark);
+      }
+
+      .metric small {
+        color: #94a3b8;
+        font-weight: 800;
+      }
+
+      .metric strong {
+        font-size: 15px;
+      }
+
       ul {
         margin: 0;
         padding-left: 18px;
         color: var(--muted);
         line-height: 1.5;
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 18px;
       }
     </style>
   </head>
@@ -142,50 +234,115 @@
     <main>
       <p class="eyebrow">AI FITNESS PLATFORM</p>
       <h1>FitRank AI</h1>
-      <p class="subtitle">Профил, постижения, FitRank резултат и персонален план.</p>
+      <p class="subtitle">Профил, цели, реалистична оценка и персонален режим.</p>
 
-      <section class="panel">
-        <p class="panel-title">Профил</p>
-        <label>Име <input id="name" /></label>
-        <label>Имейл <input id="email" /></label>
-        <div class="row">
-          <label>Кг <input id="weight" type="number" /></label>
-          <label>Ръст <input id="height" type="number" /></label>
-          <label>Възраст <input id="age" type="number" /></label>
+      <div class="steps">
+        <span id="step-login" class="step active">1. Вход</span>
+        <span id="step-assessment" class="step">2. Данни</span>
+        <span id="step-plan" class="step">3. План</span>
+      </div>
+
+      <section id="login" class="screen active">
+        <div class="panel">
+          <p class="panel-title">Вход</p>
+          <p class="hint">Създай профил с име и имейл. После приложението ще те помни.</p>
+          <label>Име <input id="name" placeholder="Например Алекс" /></label>
+          <label>Имейл <input id="email" placeholder="name@example.com" /></label>
+          <button id="loginButton">Влез</button>
         </div>
-        <button id="save">Запази профил</button>
+        <p id="status" class="status">Влез в профила си, за да започнеш.</p>
       </section>
 
-      <section class="panel">
-        <p class="panel-title">Постижения</p>
-        <label>Лицеви опори <input id="pushups" type="number" /></label>
-        <label>Лежанка <input id="bench" type="number" /></label>
-        <label>Набирания <input id="pullups" type="number" /></label>
-        <label>Клек <input id="squat" type="number" /></label>
-        <label>Мъртва тяга <input id="deadlift" type="number" /></label>
-        <button id="generate">Generate Plan</button>
+      <section id="assessment" class="screen">
+        <div class="profile-bar">
+          <div>
+            <p id="profileName" class="profile-name">Профил</p>
+            <p id="profileEmail" class="profile-email"></p>
+          </div>
+          <button id="logoutButton" class="secondary">Изход</button>
+        </div>
+
+        <div class="panel">
+          <p class="panel-title">Данни за тялото</p>
+          <div class="row">
+            <label>Кг <input id="weight" type="number" /></label>
+            <label>Ръст <input id="height" type="number" /></label>
+            <label>Възраст <input id="age" type="number" /></label>
+          </div>
+        </div>
+
+        <div class="panel">
+          <p class="panel-title">Текущи постижения</p>
+          <label>Лицеви опори <input id="pushups" type="number" /></label>
+          <label>Лежанка <input id="bench" type="number" /></label>
+          <label>Набирания <input id="pullups" type="number" /></label>
+          <label>Клек <input id="squat" type="number" /></label>
+          <label>Мъртва тяга <input id="deadlift" type="number" /></label>
+        </div>
+
+        <div class="panel">
+          <p class="panel-title">Цел за напред</p>
+          <p class="hint">Напиши какви резултати искаш да стигнеш и за колко време.</p>
+          <label>Цел: Лицеви опори <input id="targetPushups" type="number" /></label>
+          <label>Цел: Лежанка <input id="targetBench" type="number" /></label>
+          <label>Цел: Набирания <input id="targetPullups" type="number" /></label>
+          <label>Цел: Клек <input id="targetSquat" type="number" /></label>
+          <label>Цел: Мъртва тяга <input id="targetDeadlift" type="number" /></label>
+          <label>За колко седмици? <input id="deadline" type="number" value="8" /></label>
+          <button id="generate">Генерирай план</button>
+        </div>
       </section>
 
-      <p id="status" class="status">Не си влязъл в профил.</p>
+      <section id="plan" class="screen">
+        <section class="score-card">
+          <span>FitRank Score</span>
+          <span id="score" class="score-value">0 / 100</span>
+          <span id="label" class="score-hint">Beginner</span>
+        </section>
 
-      <section id="scoreCard" class="score-card">
-        <span>FitRank Score</span>
-        <span id="score" class="score-value">0 / 100</span>
-        <span id="label" class="score-hint">Beginner</span>
-      </section>
+        <section class="panel">
+          <p id="realismTitle" class="panel-title">Оценка на целта</p>
+          <p id="realismMessage" class="hint"></p>
+          <div class="summary">
+            <div class="metric"><small>Целеви резултат</small><strong id="targetScore">0 / 100</strong></div>
+            <div class="metric"><small>Срок</small><strong id="deadlineSummary">8 седм.</strong></div>
+            <div class="metric"><small>Тренировки</small><strong id="trainingDays">4 дни</strong></div>
+          </div>
+        </section>
 
-      <section id="plan" class="panel" hidden>
-        <p class="panel-title">Седмичен план</p>
-        <ul>
-          <li>Ден 1: лежанка, лицеви опори и набирания</li>
-          <li>Ден 2: клек, корем и мобилност</li>
-          <li>Ден 4: мъртва тяга, гръб и набирания</li>
-          <li>Ден 5: цялостна силова тренировка</li>
-        </ul>
+        <section class="panel">
+          <p class="panel-title">Тренировъчен план</p>
+          <ul id="workouts"></ul>
+        </section>
+
+        <section class="panel">
+          <p class="panel-title">Хранене</p>
+          <p id="nutritionFocus" class="hint"></p>
+          <p id="nutritionMacros" class="hint"></p>
+          <p id="nutritionMeals" class="hint"></p>
+        </section>
+
+        <div class="actions">
+          <button id="backButton" class="secondary">Промени данните</button>
+          <button id="logoutPlanButton">Изход</button>
+        </div>
       </section>
     </main>
 
     <script>
+      const fields = {
+        profile: ["name", "email", "weight", "height", "age"],
+        current: ["pushups", "bench", "pullups", "squat", "deadlift"],
+        target: ["targetPushups", "targetBench", "targetPullups", "targetSquat", "targetDeadlift"]
+      };
+
+      const labels = {
+        realistic: "Реалистична цел",
+        challenging: "Трудна, но възможна цел",
+        intensive: "Кратък срок, нужен е по-силен режим",
+        unrealistic: "Нереалистична цел"
+      };
+
       const stored = JSON.parse(localStorage.getItem("fitrank_profile") || "null");
       if (stored) {
         document.getElementById("name").value = stored.name || "";
@@ -193,41 +350,243 @@
         document.getElementById("weight").value = stored.weightKg || "";
         document.getElementById("height").value = stored.heightCm || "";
         document.getElementById("age").value = stored.age || "";
-        document.getElementById("status").textContent = `Влязъл като ${stored.name || stored.email}`;
+        showScreen("assessment");
+        refreshProfileBar();
       }
 
-      document.getElementById("save").addEventListener("click", () => {
-        const profile = {
-          name: document.getElementById("name").value,
-          email: document.getElementById("email").value,
+      document.getElementById("loginButton").addEventListener("click", () => {
+        const profile = getProfile();
+        if (!profile.name || !profile.email) {
+          document.getElementById("status").textContent = "Напиши име и имейл, за да влезеш.";
+          return;
+        }
+
+        localStorage.setItem("fitrank_profile", JSON.stringify(profile));
+        showScreen("assessment");
+        refreshProfileBar();
+      });
+
+      document.getElementById("logoutButton").addEventListener("click", logout);
+      document.getElementById("logoutPlanButton").addEventListener("click", logout);
+      document.getElementById("backButton").addEventListener("click", () => showScreen("assessment"));
+
+      document.getElementById("generate").addEventListener("click", () => {
+        const payload = getPayload();
+        if (!payload.biometrics.weightKg || !payload.biometrics.heightCm || !payload.biometrics.age || !hasTarget(payload.enteredTargets)) {
+          return;
+        }
+
+        const currentScore = calculateScore(payload.exerciseResults, payload.biometrics.weightKg);
+        const targetScore = calculateScore(payload.goalTargets, payload.biometrics.weightKg);
+        const goal = evaluateGoal(payload, currentScore, targetScore);
+        const plan = buildPlan(goal);
+
+        document.getElementById("score").textContent = `${currentScore} / 100`;
+        document.getElementById("label").textContent = percentileLabel(currentScore);
+        document.getElementById("realismTitle").textContent = labels[goal.realism];
+        document.getElementById("realismMessage").textContent = goal.message;
+        document.getElementById("targetScore").textContent = `${goal.targetScore} / 100`;
+        document.getElementById("deadlineSummary").textContent = `${goal.deadlineWeeks} седм.`;
+        document.getElementById("trainingDays").textContent = `${goal.trainingDays} дни`;
+        document.getElementById("workouts").innerHTML = plan.workouts.map((item) => `<li>${item}</li>`).join("");
+        document.getElementById("nutritionFocus").textContent = plan.nutrition.focus;
+        document.getElementById("nutritionMacros").textContent = plan.nutrition.macros;
+        document.getElementById("nutritionMeals").textContent = plan.nutrition.meals;
+        showScreen("plan");
+      });
+
+      function showScreen(screen) {
+        ["login", "assessment", "plan"].forEach((id) => {
+          document.getElementById(id).classList.toggle("active", id === screen);
+          document.getElementById(`step-${id}`).classList.toggle("active", id === screen);
+        });
+      }
+
+      function refreshProfileBar() {
+        document.getElementById("profileName").textContent = document.getElementById("name").value || "Профил";
+        document.getElementById("profileEmail").textContent = document.getElementById("email").value;
+      }
+
+      function logout() {
+        localStorage.removeItem("fitrank_profile");
+        fields.profile.concat(fields.current, fields.target).forEach((id) => {
+          document.getElementById(id).value = "";
+        });
+        document.getElementById("deadline").value = "8";
+        showScreen("login");
+      }
+
+      function getProfile() {
+        return {
+          name: document.getElementById("name").value.trim(),
+          email: document.getElementById("email").value.trim().toLowerCase(),
           weightKg: document.getElementById("weight").value,
           heightCm: document.getElementById("height").value,
           age: document.getElementById("age").value
         };
-        localStorage.setItem("fitrank_profile", JSON.stringify(profile));
-        document.getElementById("status").textContent = `Влязъл като ${profile.name || profile.email}`;
-      });
+      }
 
-      document.getElementById("generate").addEventListener("click", () => {
-        const weight = Math.max(Number(document.getElementById("weight").value), 1);
-        const upper = Math.min(
-          100,
-          Number(document.getElementById("pushups").value) * 1.2
-            + Number(document.getElementById("pullups").value) * 5
-            + (Number(document.getElementById("bench").value) / weight) * 30
-        );
-        const lower = Math.min(
-          100,
-          (Number(document.getElementById("squat").value) / weight) * 35
-            + (Number(document.getElementById("deadlift").value) / weight) * 40
-        );
-        const score = Math.round(Math.max(0, Math.min(100, upper * 0.55 + lower * 0.45)));
-        const label = score >= 85 ? "Top 15%" : score >= 70 ? "Top 35%" : score >= 50 ? "Average" : "Beginner";
-        document.getElementById("score").textContent = `${score} / 100`;
-        document.getElementById("label").textContent = label;
-        document.getElementById("scoreCard").classList.add("visible");
-        document.getElementById("plan").hidden = false;
-      });
+      function getPayload() {
+        const profile = getProfile();
+        const exerciseResults = {
+          pushups: toNumber("pushups"),
+          benchKg: toNumber("bench"),
+          pullups: toNumber("pullups"),
+          squatKg: toNumber("squat"),
+          deadliftKg: toNumber("deadlift")
+        };
+        const enteredTargets = {
+          pushups: toNumber("targetPushups"),
+          benchKg: toNumber("targetBench"),
+          pullups: toNumber("targetPullups"),
+          squatKg: toNumber("targetSquat"),
+          deadliftKg: toNumber("targetDeadlift")
+        };
+        localStorage.setItem("fitrank_profile", JSON.stringify(profile));
+        return {
+          biometrics: {
+            age: toNumber(profile.age),
+            heightCm: toNumber(profile.heightCm),
+            weightKg: toNumber(profile.weightKg),
+            activityLevel: "moderate"
+          },
+          exerciseResults,
+          enteredTargets,
+          goalTargets: {
+            pushups: enteredTargets.pushups || exerciseResults.pushups,
+            benchKg: enteredTargets.benchKg || exerciseResults.benchKg,
+            pullups: enteredTargets.pullups || exerciseResults.pullups,
+            squatKg: enteredTargets.squatKg || exerciseResults.squatKg,
+            deadliftKg: enteredTargets.deadliftKg || exerciseResults.deadliftKg
+          },
+          deadlineWeeks: Math.max(1, Math.round(toNumber("deadline") || 8))
+        };
+      }
+
+      function evaluateGoal(payload, score, targetScore) {
+        const deadline = payload.deadlineWeeks;
+        const scoreGap = Math.max(0, targetScore - score);
+        const weeklyGainNeeded = scoreGap / deadline;
+        let realism = "realistic";
+
+        if ((targetScore >= 92 && deadline < 10) || weeklyGainNeeded > 5) {
+          realism = "unrealistic";
+        } else if (weeklyGainNeeded > 3 || deadline <= 4) {
+          realism = "intensive";
+        } else if (weeklyGainNeeded > 1.8) {
+          realism = "challenging";
+        }
+
+        const trainingDays = {
+          realistic: 4,
+          challenging: 5,
+          intensive: 6,
+          unrealistic: 4
+        }[realism];
+
+        const messages = {
+          realistic: "Целта изглежда постижима с постоянни тренировки и нормално възстановяване.",
+          challenging: "Целта е възможна, но ще трябва да тренираш по-редовно и да следиш храненето.",
+          intensive: "Целта е реалистична само с по-чести тренировки, повече храна и добър сън.",
+          unrealistic: "Целта е прекалено голяма за този срок. Удължи периода или избери междинна цел."
+        };
+
+        return {
+          deadlineWeeks: deadline,
+          realism,
+          targetScore,
+          trainingDays,
+          message: messages[realism]
+        };
+      }
+
+      function buildPlan(goal) {
+        const workouts = {
+          realistic: [
+            "Ден 1: лежанка, лицеви опори и набирания",
+            "Ден 2: клек, корем и мобилност",
+            "Ден 3: почивка или леко кардио",
+            "Ден 4: мъртва тяга, гръб и набирания",
+            "Ден 5: техника и умерен обем"
+          ],
+          challenging: [
+            "Ден 1: тежка лежанка и набирания",
+            "Ден 2: клек, крака и корем",
+            "Ден 3: възстановяване и мобилност",
+            "Ден 4: мъртва тяга и гръб",
+            "Ден 5: обем за слабите упражнения",
+            "Ден 6: леко кардио и разтягане"
+          ],
+          intensive: [
+            "Ден 1: лежанка плюс допълнителни лицеви опори",
+            "Ден 2: клек и техника",
+            "Ден 3: набирания, гръб и корем",
+            "Ден 4: мъртва тяга и задно бедро",
+            "Ден 5: повторение на най-слабите упражнения",
+            "Ден 6: лек обем, мобилност и възстановяване",
+            "Ден 7: пълна почивка"
+          ],
+          unrealistic: [
+            "Седмица 1: намали целта до междинен етап и тествай техника",
+            "Ден 1: лежанка и лицеви опори с умерена тежест",
+            "Ден 2: клек и мобилност",
+            "Ден 4: мъртва тяга и набирания",
+            "Ден 6: техника, разтягане и активна почивка"
+          ]
+        };
+
+        const nutrition = {
+          realistic: {
+            focus: "Стабилен протеин, нормални порции и постоянство.",
+            macros: "Около 1.6-2.0 г протеин на кг телесно тегло.",
+            meals: "Яйца или кисело мляко, месо/риба с ориз или картофи, плодове и вода."
+          },
+          challenging: {
+            focus: "Повече протеин и лек калориен излишък в тренировъчните дни.",
+            macros: "Около 1.8-2.2 г протеин на кг и въглехидрати около тренировките.",
+            meals: "Овес с мляко, пилешко с ориз, банан преди тренировка, извара вечер."
+          },
+          intensive: {
+            focus: "По-сериозно хранене, повече сън и следене на възстановяването.",
+            macros: "2.0-2.2 г протеин на кг, повече въглехидрати и достатъчно калории.",
+            meals: "Закуска с овес и яйца, обяд с месо и ориз, след тренировка банан и протеин, вечеря с картофи и месо."
+          },
+          unrealistic: {
+            focus: "Целта е прекалено агресивна. Първо избери междинна цел, за да не рискуваш травма.",
+            macros: "Поддържай протеин 1.8-2.0 г на кг и не режи калории рязко.",
+            meals: "Яж редовно и следи силата всяка седмица, вместо да гониш огромен скок наведнъж."
+          }
+        };
+
+        return {
+          workouts: workouts[goal.realism],
+          nutrition: nutrition[goal.realism]
+        };
+      }
+
+      function calculateScore(results, weightKg) {
+        const weight = Math.max(weightKg, 1);
+        const upper = Math.min(100, results.pushups * 1.2 + results.pullups * 5 + (results.benchKg / weight) * 30);
+        const lower = Math.min(100, (results.squatKg / weight) * 35 + (results.deadliftKg / weight) * 40);
+        return Math.round(Math.max(0, Math.min(100, upper * 0.55 + lower * 0.45)));
+      }
+
+      function hasTarget(targets) {
+        return Object.values(targets).some((value) => value > 0);
+      }
+
+      function percentileLabel(score) {
+        if (score >= 85) return "Top 15%";
+        if (score >= 70) return "Top 35%";
+        if (score >= 50) return "Average";
+        return "Beginner";
+      }
+
+      function toNumber(idOrValue) {
+        const raw = document.getElementById(idOrValue)?.value ?? idOrValue ?? "0";
+        const parsed = Number(String(raw).replace(",", "."));
+        return Number.isFinite(parsed) ? parsed : 0;
+      }
     </script>
   </body>
 </html>

@@ -21,6 +21,13 @@ class PlanGeneratorTests(unittest.TestCase):
                 squat_kg=110,
                 deadlift_kg=140,
             ),
+            goal_targets=ExerciseResults(
+                pushups=45,
+                bench_kg=95,
+                pullups=12,
+                squat_kg=125,
+                deadlift_kg=155,
+            ),
             goal="Build strength and improve conditioning",
             deadline_weeks=8,
         )
@@ -33,6 +40,8 @@ class PlanGeneratorTests(unittest.TestCase):
         self.assertEqual(response["ai"]["provider"], "openai")
         self.assertGreater(len(response["plan"]["workouts"]), 0)
         self.assertIn("FitRank score", response["aiPrompt"])
+        self.assertIn("Target results", response["aiPrompt"])
+        self.assertIn("meals", response["plan"]["nutrition"])
 
 
 if __name__ == "__main__":

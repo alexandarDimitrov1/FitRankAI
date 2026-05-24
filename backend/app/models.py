@@ -24,3 +24,4 @@ class FitnessAssessment:
     exercise_results: ExerciseResults
     goal: str | None = None
     deadline_weeks: int | None = None
+    goal_targets: ExerciseResults | None = None

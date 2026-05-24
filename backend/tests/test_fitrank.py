@@ -28,7 +28,7 @@ class FitRankTests(unittest.TestCase):
         self.assertLessEqual(result["score"], 100)
         self.assertIn("breakdown", result)
 
-    def test_short_deadline_marks_goal_as_aggressive_for_lower_score(self):
+    def test_short_deadline_marks_goal_as_intensive_for_lower_score(self):
         assessment = FitnessAssessment(
             biometrics=Biometrics(
                 age=18,
@@ -50,7 +50,40 @@ class FitRankTests(unittest.TestCase):
         score = calculate_fitrank(assessment)["score"]
         result = evaluate_goal(assessment, score)
 
-        self.assertEqual(result["realism"], "aggressive")
+        self.assertEqual(result["realism"], "intensive")
+        self.assertEqual(result["trainingDays"], 6)
+
+    def test_large_target_jump_marks_goal_as_unrealistic(self):
+        assessment = FitnessAssessment(
+            biometrics=Biometrics(
+                age=18,
+                height_cm=170,
+                weight_kg=70,
+                activity_level="moderate",
+            ),
+            exercise_results=ExerciseResults(
+                pushups=5,
+                bench_kg=30,
+                pullups=0,
+                squat_kg=40,
+                deadlift_kg=50,
+            ),
+            goal_targets=ExerciseResults(
+                pushups=80,
+                bench_kg=130,
+                pullups=25,
+                squat_kg=180,
+                deadlift_kg=220,
+            ),
+            goal="Reach elite strength numbers",
+            deadline_weeks=4,
+        )
+
+        score = calculate_fitrank(assessment)["score"]
+        result = evaluate_goal(assessment, score)
+
+        self.assertEqual(result["realism"], "unrealistic")
+        self.assertGreater(result["targetScore"], score)
 
 
 if __name__ == "__main__":

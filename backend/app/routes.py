@@ -66,6 +66,11 @@ def get_profile(user_id: str):
 def _parse_assessment(payload: dict) -> FitnessAssessment:
     biometrics = payload.get("biometrics", {})
     exercise_results = payload.get("exerciseResults", {})
+    goal_targets = payload.get("goalTargets")
+    parsed_results = _parse_exercise_results(exercise_results)
+    parsed_targets = (
+        _parse_exercise_results(goal_targets) if isinstance(goal_targets, dict) else None
+    )
 
     return FitnessAssessment(
         biometrics=Biometrics(
@@ -74,15 +79,36 @@ def _parse_assessment(payload: dict) -> FitnessAssessment:
             weight_kg=float(biometrics.get("weightKg", 70)),
             activity_level=str(biometrics.get("activityLevel", "moderate")),
         ),
-        exercise_results=ExerciseResults(
-            pushups=int(exercise_results.get("pushups", 0)),
-            bench_kg=float(exercise_results.get("benchKg", 0)),
-            pullups=int(exercise_results.get("pullups", 0)),
-            squat_kg=float(exercise_results.get("squatKg", 0)),
-            deadlift_kg=float(exercise_results.get("deadliftKg", 0)),
-        ),
+        exercise_results=parsed_results,
         goal=payload.get("goal"),
         deadline_weeks=(
             int(payload["deadlineWeeks"]) if payload.get("deadlineWeeks") else None
         ),
+        goal_targets=(
+            _merge_missing_targets(parsed_results, parsed_targets)
+            if parsed_targets
+            else None
+        ),
+    )
+
+
+def _parse_exercise_results(payload: dict) -> ExerciseResults:
+    return ExerciseResults(
+        pushups=int(payload.get("pushups", 0)),
+        bench_kg=float(payload.get("benchKg", 0)),
+        pullups=int(payload.get("pullups", 0)),
+        squat_kg=float(payload.get("squatKg", 0)),
+        deadlift_kg=float(payload.get("deadliftKg", 0)),
+    )
+
+
+def _merge_missing_targets(
+    current: ExerciseResults, target: ExerciseResults
+) -> ExerciseResults:
+    return ExerciseResults(
+        pushups=target.pushups or current.pushups,
+        bench_kg=target.bench_kg or current.bench_kg,
+        pullups=target.pullups or current.pullups,
+        squat_kg=target.squat_kg or current.squat_kg,
+        deadlift_kg=target.deadlift_kg or current.deadlift_kg,
     )
