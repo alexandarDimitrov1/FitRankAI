@@ -1,15 +1,17 @@
 from ..models import FitnessAssessment
+from .openai_planner import generate_ai_plan
 
 
 def build_plan_response(
     assessment: FitnessAssessment, rank_result: dict, goal_result: dict
 ) -> dict:
     prompt = build_ai_prompt(assessment, rank_result, goal_result)
+    ai_result = generate_ai_plan(prompt)
 
     return {
         "fitRank": rank_result,
         "goal": goal_result,
-        "plan": {
+        "plan": ai_result["plan"] or {
             "workouts": [
                 "Day 1: full-body strength and core",
                 "Day 2: zone 2 cardio and mobility",
@@ -25,6 +27,12 @@ def build_plan_response(
             },
         },
         "aiPrompt": prompt,
+        "ai": {
+            "provider": ai_result["provider"],
+            "model": ai_result["model"],
+            "generated": ai_result["generated"],
+            "reason": ai_result["reason"],
+        },
     }
 
 

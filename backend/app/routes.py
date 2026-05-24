@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 
 from .models import Biometrics, ExerciseResults, FitnessAssessment
 from .services.fitrank import calculate_fitrank, evaluate_goal
+from .services.firebase_store import get_firebase_status, save_plan_snapshot
 from .services.plan_generator import build_plan_response
 
 api = Blueprint("api", __name__)
@@ -9,7 +10,13 @@ api = Blueprint("api", __name__)
 
 @api.get("/health")
 def health():
-    return jsonify({"status": "ok", "service": "fitrank-api"})
+    return jsonify(
+        {
+            "status": "ok",
+            "service": "fitrank-api",
+            "firebase": get_firebase_status(),
+        }
+    )
 
 
 @api.post("/api/rank")
@@ -25,6 +32,11 @@ def plan():
     rank_result = calculate_fitrank(assessment)
     goal_result = evaluate_goal(assessment, rank_result["score"])
     plan_result = build_plan_response(assessment, rank_result, goal_result)
+    plan_result["storage"] = save_plan_snapshot(
+        user_id=request.headers.get("X-FitRank-User", "demo-user"),
+        assessment=assessment,
+        plan_result=plan_result,
+    )
     return jsonify(plan_result)
 
 
