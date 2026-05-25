@@ -57,7 +57,7 @@
 
       .steps {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 8px;
         margin-top: 14px;
       }
@@ -72,6 +72,7 @@
         color: var(--muted);
         font-size: 12px;
         font-weight: 800;
+        text-align: center;
       }
 
       .step.active {
@@ -90,7 +91,8 @@
 
       .panel,
       .score-card,
-      .profile-bar {
+      .profile-bar,
+      .guide-card {
         margin-top: 18px;
         border-radius: 8px;
       }
@@ -154,8 +156,11 @@
         padding: 10px 12px;
       }
 
-      button {
+      button,
+      .link-button {
         min-height: 48px;
+        display: grid;
+        place-items: center;
         border: 0;
         border-radius: 8px;
         background: var(--accent);
@@ -163,6 +168,7 @@
         font: inherit;
         font-weight: 900;
         cursor: pointer;
+        text-decoration: none;
       }
 
       .secondary {
@@ -224,9 +230,40 @@
 
       .actions {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 10px;
         margin-top: 18px;
+      }
+
+      .guide-card {
+        overflow: hidden;
+        background: var(--panel);
+      }
+
+      .guide-card img {
+        display: block;
+        width: 100%;
+        height: 190px;
+        object-fit: cover;
+        background: var(--panel-dark);
+      }
+
+      .guide-content {
+        display: grid;
+        gap: 9px;
+        padding: 16px;
+      }
+
+      .guide-title {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 900;
+      }
+
+      .guide-meta {
+        color: var(--accent);
+        font-size: 13px;
+        font-weight: 900;
       }
     </style>
   </head>
@@ -234,12 +271,13 @@
     <main>
       <p class="eyebrow">AI FITNESS PLATFORM</p>
       <h1>FitRank AI</h1>
-      <p class="subtitle">Профил, цели, реалистична оценка и персонален режим.</p>
+      <p class="subtitle">Профил, цели, реалистична оценка, техника и персонален режим.</p>
 
       <div class="steps">
         <span id="step-login" class="step active">1. Вход</span>
         <span id="step-assessment" class="step">2. Данни</span>
         <span id="step-plan" class="step">3. План</span>
+        <span id="step-exercises" class="step">Техника</span>
       </div>
 
       <section id="login" class="screen active">
@@ -261,6 +299,8 @@
           </div>
           <button id="logoutButton" class="secondary">Изход</button>
         </div>
+
+        <button id="openGuidesFromAssessment" class="secondary">Виж техниката на упражненията</button>
 
         <div class="panel">
           <p class="panel-title">Данни за тялото</p>
@@ -311,7 +351,7 @@
         </section>
 
         <section class="panel">
-          <p class="panel-title">Тренировъчен план</p>
+          <p class="panel-title">Подробна тренировъчна програма</p>
           <ul id="workouts"></ul>
         </section>
 
@@ -323,18 +363,67 @@
         </section>
 
         <div class="actions">
-          <button id="backButton" class="secondary">Промени данните</button>
+          <button id="backButton" class="secondary">Промени</button>
+          <button id="openGuidesFromPlan" class="secondary">Техника</button>
           <button id="logoutPlanButton">Изход</button>
         </div>
+      </section>
+
+      <section id="exercises" class="screen">
+        <div class="panel">
+          <p class="panel-title">Техника на упражненията</p>
+          <p class="hint">Първо научи движението, после гони повече тежест или повторения.</p>
+        </div>
+        <div id="guideList"></div>
+        <button id="guideBackButton">Назад</button>
       </section>
     </main>
 
     <script>
-      const fields = {
-        profile: ["name", "email", "weight", "height", "age"],
-        current: ["pushups", "bench", "pullups", "squat", "deadlift"],
-        target: ["targetPushups", "targetBench", "targetPullups", "targetSquat", "targetDeadlift"]
-      };
+      let guideBackScreen = "assessment";
+
+      const guides = [
+        {
+          title: "Лицеви опори",
+          image: "https://commons.wikimedia.org/wiki/Special:FilePath/Airman%20doing%20pushup.JPG?width=640",
+          url: "https://exrx.net/WeightExercises/PectoralSternal/BWPushup",
+          muscles: "Гърди, рамене, трицепс и корем",
+          cues: ["Тялото е в права линия.", "Ръцете са малко по-широко от раменете.", "Слизай контролирано и избутвай без да отпускаш кръста."],
+          mistakes: "Не вдигай таза много високо и не оставяй кръста да пропада."
+        },
+        {
+          title: "Лежанка",
+          image: "https://commons.wikimedia.org/wiki/Special:FilePath/Bench%20Press.jpg?width=640",
+          url: "https://exrx.net/WeightExercises/PectoralSternal/BBBenchPress",
+          muscles: "Гърди, предно рамо и трицепс",
+          cues: ["Стъпалата са стабилно на земята.", "Спускай лоста към долната част на гърдите.", "Избутвай нагоре с контрол."],
+          mistakes: "Не пускай лоста да пада и не отваряй лактите прекалено встрани."
+        },
+        {
+          title: "Набирания",
+          image: "https://commons.wikimedia.org/wiki/Special:FilePath/Girl%20doing%20pull%20up%20top%20position.jpg?width=640",
+          url: "https://exrx.net/WeightExercises/LatissimusDorsi/BWPullup",
+          muscles: "Гръб, бицепс, предмишници и задно рамо",
+          cues: ["Стегни корема.", "Дърпай гърдите към лоста.", "Спускай почти до изпънати ръце."],
+          mistakes: "Не използвай засилка, ако целта е сила."
+        },
+        {
+          title: "Клек",
+          image: "https://commons.wikimedia.org/wiki/Special:FilePath/Woman%20doing%20squat%20workout%20in%20gym%20with%20barbell.jpg?width=640",
+          url: "https://exrx.net/WeightExercises/Quadriceps/BBSquat",
+          muscles: "Квадрицепс, седалище, задно бедро и корем",
+          cues: ["Стъпалата са стабилни.", "Коленете следват пръстите.", "Избутвай през средата на стъпалото."],
+          mistakes: "Не събирай коленете навътре и не губи неутрален гръб."
+        },
+        {
+          title: "Мъртва тяга",
+          image: "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift%20%283%29.JPG?width=640",
+          url: "https://exrx.net/WeightExercises/ErectorSpinae/BBDeadlift",
+          muscles: "Гръб, седалище, задно бедро, квадрицепс и хват",
+          cues: ["Лостът е близо до пищялите.", "Коремът е стегнат и гърбът е неутрален.", "Изправяй се с бедра и колене."],
+          mistakes: "Не дърпай с кръгъл гръб и не оставяй лоста да се отдалечава."
+        }
+      ];
 
       const labels = {
         realistic: "Реалистична цел",
@@ -342,6 +431,8 @@
         intensive: "Кратък срок, нужен е по-силен режим",
         unrealistic: "Нереалистична цел"
       };
+
+      renderGuides();
 
       const stored = JSON.parse(localStorage.getItem("fitrank_profile") || "null");
       if (stored) {
@@ -360,7 +451,6 @@
           document.getElementById("status").textContent = "Напиши име и имейл, за да влезеш.";
           return;
         }
-
         localStorage.setItem("fitrank_profile", JSON.stringify(profile));
         showScreen("assessment");
         refreshProfileBar();
@@ -369,13 +459,15 @@
       document.getElementById("logoutButton").addEventListener("click", logout);
       document.getElementById("logoutPlanButton").addEventListener("click", logout);
       document.getElementById("backButton").addEventListener("click", () => showScreen("assessment"));
+      document.getElementById("guideBackButton").addEventListener("click", () => showScreen(guideBackScreen));
+      document.getElementById("openGuidesFromAssessment").addEventListener("click", () => openGuides("assessment"));
+      document.getElementById("openGuidesFromPlan").addEventListener("click", () => openGuides("plan"));
 
       document.getElementById("generate").addEventListener("click", () => {
         const payload = getPayload();
         if (!payload.biometrics.weightKg || !payload.biometrics.heightCm || !payload.biometrics.age || !hasTarget(payload.enteredTargets)) {
           return;
         }
-
         const currentScore = calculateScore(payload.exerciseResults, payload.biometrics.weightKg);
         const targetScore = calculateScore(payload.goalTargets, payload.biometrics.weightKg);
         const goal = evaluateGoal(payload, currentScore, targetScore);
@@ -395,8 +487,28 @@
         showScreen("plan");
       });
 
+      function renderGuides() {
+        document.getElementById("guideList").innerHTML = guides.map((guide) => `
+          <article class="guide-card">
+            <img src="${guide.image}" alt="${guide.title}" />
+            <div class="guide-content">
+              <p class="guide-title">${guide.title}</p>
+              <span class="guide-meta">${guide.muscles}</span>
+              <ul>${guide.cues.map((cue) => `<li>${cue}</li>`).join("")}</ul>
+              <p class="hint">${guide.mistakes}</p>
+              <a class="link-button" href="${guide.url}" target="_blank" rel="noreferrer">Отвори пълното обяснение</a>
+            </div>
+          </article>
+        `).join("");
+      }
+
+      function openGuides(backScreen) {
+        guideBackScreen = backScreen;
+        showScreen("exercises");
+      }
+
       function showScreen(screen) {
-        ["login", "assessment", "plan"].forEach((id) => {
+        ["login", "assessment", "plan", "exercises"].forEach((id) => {
           document.getElementById(id).classList.toggle("active", id === screen);
           document.getElementById(`step-${id}`).classList.toggle("active", id === screen);
         });
@@ -409,7 +521,7 @@
 
       function logout() {
         localStorage.removeItem("fitrank_profile");
-        fields.profile.concat(fields.current, fields.target).forEach((id) => {
+        ["name", "email", "weight", "height", "age", "pushups", "bench", "pullups", "squat", "deadlift", "targetPushups", "targetBench", "targetPullups", "targetSquat", "targetDeadlift"].forEach((id) => {
           document.getElementById(id).value = "";
         });
         document.getElementById("deadline").value = "8";
@@ -469,69 +581,52 @@
         const weeklyGainNeeded = scoreGap / deadline;
         let realism = "realistic";
 
-        if ((targetScore >= 92 && deadline < 10) || weeklyGainNeeded > 5) {
-          realism = "unrealistic";
-        } else if (weeklyGainNeeded > 3 || deadline <= 4) {
-          realism = "intensive";
-        } else if (weeklyGainNeeded > 1.8) {
-          realism = "challenging";
-        }
+        if ((targetScore >= 92 && deadline < 10) || weeklyGainNeeded > 5) realism = "unrealistic";
+        else if (weeklyGainNeeded > 3 || deadline <= 4) realism = "intensive";
+        else if (weeklyGainNeeded > 1.8) realism = "challenging";
 
-        const trainingDays = {
-          realistic: 4,
-          challenging: 5,
-          intensive: 6,
-          unrealistic: 4
-        }[realism];
-
+        const trainingDays = { realistic: 4, challenging: 5, intensive: 6, unrealistic: 4 }[realism];
         const messages = {
           realistic: "Целта изглежда постижима с постоянни тренировки и нормално възстановяване.",
           challenging: "Целта е възможна, но ще трябва да тренираш по-редовно и да следиш храненето.",
           intensive: "Целта е реалистична само с по-чести тренировки, повече храна и добър сън.",
           unrealistic: "Целта е прекалено голяма за този срок. Удължи периода или избери междинна цел."
         };
-
-        return {
-          deadlineWeeks: deadline,
-          realism,
-          targetScore,
-          trainingDays,
-          message: messages[realism]
-        };
+        return { deadlineWeeks: deadline, realism, targetScore, trainingDays, message: messages[realism] };
       }
 
       function buildPlan(goal) {
         const workouts = {
           realistic: [
-            "Ден 1: лежанка, лицеви опори и набирания",
-            "Ден 2: клек, корем и мобилност",
-            "Ден 3: почивка или леко кардио",
-            "Ден 4: мъртва тяга, гръб и набирания",
-            "Ден 5: техника и умерен обем"
+            "Ден 1: Лежанка 4x5, дъмбел прес 3x8, лицеви опори 3xмакс, трицепс разгъване 3x12. Почивка 2-3 мин.",
+            "Ден 2: Клек 4x5, румънска тяга 3x8, напади 3x10 на крак, планк 3x45 сек. Почивка 2-3 мин.",
+            "Ден 3: Леко кардио 25 мин, мобилност за рамене и бедра 15 мин, разтягане.",
+            "Ден 4: Мъртва тяга 4x4, набирания 4xмакс, гребане с дъмбел 3x10, face pull 3x15. Почивка 2-3 мин.",
+            "Ден 5: Техника: лежанка 3x8 с лека тежест, клек 3x8, лицеви опори 3x12, корем 3 кръга."
           ],
           challenging: [
-            "Ден 1: тежка лежанка и набирания",
-            "Ден 2: клек, крака и корем",
-            "Ден 3: възстановяване и мобилност",
-            "Ден 4: мъртва тяга и гръб",
-            "Ден 5: обем за слабите упражнения",
-            "Ден 6: леко кардио и разтягане"
+            "Ден 1: Тежка лежанка 5x4, дъмбел прес 4x8, лицеви опори 4xмакс, трицепс кофички 3x8. Почивка 3 мин.",
+            "Ден 2: Клек 5x4, преден клек 3x6, напади 3x10, корем 4 серии. Почивка 3 мин.",
+            "Ден 3: Набирания 5xмакс, гребане 4x8, бицепс 3x12, лека мобилност за гръб.",
+            "Ден 4: Мъртва тяга 5x3, румънска тяга 3x8, хип тръст 3x10, задно бедро 3x12.",
+            "Ден 5: Обем за целта: избери най-слабото упражнение и направи 6 леки серии по 6-10 повторения.",
+            "Ден 6: Леко кардио 20 мин, разтягане, техника с празен лост."
           ],
           intensive: [
-            "Ден 1: лежанка плюс допълнителни лицеви опори",
-            "Ден 2: клек и техника",
-            "Ден 3: набирания, гръб и корем",
-            "Ден 4: мъртва тяга и задно бедро",
-            "Ден 5: повторение на най-слабите упражнения",
-            "Ден 6: лек обем, мобилност и възстановяване",
-            "Ден 7: пълна почивка"
+            "Ден 1: Лежанка 5x3, дъмбел прес 4x8, лицеви опори 5xмакс, трицепс 4x12. Почивка 3 мин.",
+            "Ден 2: Клек 5x3, паузиран клек 4x5, напади 3x12, планк 4x45 сек.",
+            "Ден 3: Набирания 6 серии, негативни набирания 3x5, гребане 4x10, бицепс 3x12.",
+            "Ден 4: Мъртва тяга 5x3, румънска тяга 4x6, хип тръст 4x8, задно бедро 3x12.",
+            "Ден 5: Повторение на целта: 70% тежест, 6x4 за основното упражнение, после 3 помощни упражнения по 3 серии.",
+            "Ден 6: Лек обем: лицеви опори 4x12, клек с лека тежест 3x10, набирания 4xсубмакс, мобилност.",
+            "Ден 7: Пълна почивка, сън, разходка и подготовка за следващата седмица."
           ],
           unrealistic: [
-            "Седмица 1: намали целта до междинен етап и тествай техника",
-            "Ден 1: лежанка и лицеви опори с умерена тежест",
-            "Ден 2: клек и мобилност",
-            "Ден 4: мъртва тяга и набирания",
-            "Ден 6: техника, разтягане и активна почивка"
+            "Седмица 1: Избери междинна цел: +5-10% сила или +2-5 повторения, вместо огромен скок наведнъж.",
+            "Ден 1: Лежанка 4x6 с умерена тежест, дъмбел прес 3x10, лицеви опори 3xмакс.",
+            "Ден 2: Клек 4x6, румънска тяга 3x8, напади 3x10, мобилност за глезени и бедра.",
+            "Ден 4: Мъртва тяга 4x4, набирания 4xсубмакс, гребане 3x10, face pull 3x15.",
+            "Ден 6: Техника и възстановяване: празен лост 20 мин, разтягане, леко кардио 15-20 мин."
           ]
         };
 
@@ -557,11 +652,7 @@
             meals: "Яж редовно и следи силата всяка седмица, вместо да гониш огромен скок наведнъж."
           }
         };
-
-        return {
-          workouts: workouts[goal.realism],
-          nutrition: nutrition[goal.realism]
-        };
+        return { workouts: workouts[goal.realism], nutrition: nutrition[goal.realism] };
       }
 
       function calculateScore(results, weightKg) {

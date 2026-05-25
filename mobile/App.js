@@ -1,6 +1,8 @@
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo, useState } from "react";
 import {
+  Image,
+  Linking,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -48,8 +50,77 @@ const realismLabels = {
   unrealistic: "Нереалистична цел"
 };
 
+const exerciseGuides = [
+  {
+    key: "pushups",
+    title: "Лицеви опори",
+    image: "https://commons.wikimedia.org/wiki/Special:FilePath/Airman%20doing%20pushup.JPG?width=640",
+    sourceUrl: "https://exrx.net/WeightExercises/PectoralSternal/BWPushup",
+    muscles: "Гърди, рамене, трицепс и корем",
+    cues: [
+      "Дръж тялото в права линия от главата до петите.",
+      "Ръцете са малко по-широко от раменете.",
+      "Слизай контролирано и избутвай нагоре без да отпускаш кръста."
+    ],
+    mistakes: "Не вдигай таза много високо и не оставяй кръста да пропада."
+  },
+  {
+    key: "benchKg",
+    title: "Лежанка",
+    image: "https://commons.wikimedia.org/wiki/Special:FilePath/Bench%20Press.jpg?width=640",
+    sourceUrl: "https://exrx.net/WeightExercises/PectoralSternal/BBBenchPress",
+    muscles: "Гърди, предно рамо и трицепс",
+    cues: [
+      "Стъпалата са стабилно на земята, гърбът е стегнат.",
+      "Спускай лоста към долната част на гърдите.",
+      "Избутвай нагоре с контрол, без да отлепяш седалището."
+    ],
+    mistakes: "Не пускай лоста да пада и не отваряй лактите прекалено встрани."
+  },
+  {
+    key: "pullups",
+    title: "Набирания",
+    image: "https://commons.wikimedia.org/wiki/Special:FilePath/Girl%20doing%20pull%20up%20top%20position.jpg?width=640",
+    sourceUrl: "https://exrx.net/WeightExercises/LatissimusDorsi/BWPullup",
+    muscles: "Гръб, бицепс, предмишници и задно рамо",
+    cues: [
+      "Хвани лоста с надхват и стегни корема.",
+      "Дърпай гърдите към лоста, докато брадичката мине над него.",
+      "Спускай до почти изпънати ръце без люлеене."
+    ],
+    mistakes: "Не скъсявай повторенията и не използвай засилка, ако целта е сила."
+  },
+  {
+    key: "squatKg",
+    title: "Клек",
+    image: "https://commons.wikimedia.org/wiki/Special:FilePath/Woman%20doing%20squat%20workout%20in%20gym%20with%20barbell.jpg?width=640",
+    sourceUrl: "https://exrx.net/WeightExercises/Quadriceps/BBSquat",
+    muscles: "Квадрицепс, седалище, задно бедро и корем",
+    cues: [
+      "Стъпи стабилно, приблизително на ширината на раменете.",
+      "Дръж гърдите високо и коленете в посоката на пръстите.",
+      "Слизай поне до паралел, после избутвай през средата на стъпалото."
+    ],
+    mistakes: "Не събирай коленете навътре и не губи неутрален гръб."
+  },
+  {
+    key: "deadliftKg",
+    title: "Мъртва тяга",
+    image: "https://commons.wikimedia.org/wiki/Special:FilePath/Deadlift%20%283%29.JPG?width=640",
+    sourceUrl: "https://exrx.net/WeightExercises/ErectorSpinae/BBDeadlift",
+    muscles: "Гръб, седалище, задно бедро, квадрицепс и хват",
+    cues: [
+      "Лостът започва близо до пищялите, стъпалата са стабилни.",
+      "Стегни корема и дръж гърба неутрален преди дърпането.",
+      "Изправяй се чрез бедра и колене, като лостът стои близо до тялото."
+    ],
+    mistakes: "Не дърпай с кръгъл гръб и не оставяй лоста да се отдалечава от тялото."
+  }
+];
+
 export default function App() {
   const [screen, setScreen] = useState("login");
+  const [guideBackScreen, setGuideBackScreen] = useState("assessment");
   const [profile, setProfile] = useState(defaultProfile);
   const [achievements, setAchievements] = useState(defaultAchievements);
   const [targets, setTargets] = useState(defaultAchievements);
@@ -144,6 +215,11 @@ export default function App() {
     setStatus("Излезе от профила.");
   }
 
+  function openExerciseGuides(backScreen) {
+    setGuideBackScreen(backScreen);
+    setScreen("exercises");
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="light" />
@@ -170,6 +246,7 @@ export default function App() {
             onGeneratePlan={handleGeneratePlan}
             onGoalChange={(key, value) => setGoal((current) => ({ ...current, [key]: value }))}
             onLogout={handleLogout}
+            onOpenExercises={() => openExerciseGuides("assessment")}
             onProfileChange={updateProfile}
             onTargetChange={updateTarget}
           />
@@ -179,8 +256,13 @@ export default function App() {
           <PlanScreen
             result={result}
             onBack={() => setScreen("assessment")}
+            onOpenExercises={() => openExerciseGuides("plan")}
             onLogout={handleLogout}
           />
+        ) : null}
+
+        {screen === "exercises" ? (
+          <ExerciseGuideScreen onBack={() => setScreen(guideBackScreen)} />
         ) : null}
       </ScrollView>
     </SafeAreaView>
@@ -191,7 +273,8 @@ function Header({ screen }) {
   const steps = [
     { key: "login", label: "1. Вход" },
     { key: "assessment", label: "2. Данни" },
-    { key: "plan", label: "3. План" }
+    { key: "plan", label: "3. План" },
+    { key: "exercises", label: "Техника" }
   ];
 
   return (
@@ -257,6 +340,7 @@ function AssessmentScreen({
   onGeneratePlan,
   onGoalChange,
   onLogout,
+  onOpenExercises,
   onProfileChange,
   onTargetChange
 }) {
@@ -271,6 +355,10 @@ function AssessmentScreen({
           <Text style={styles.secondaryButtonText}>Изход</Text>
         </TouchableOpacity>
       </View>
+
+      <TouchableOpacity style={styles.secondaryActionButton} onPress={onOpenExercises}>
+        <Text style={styles.secondaryActionText}>Виж техниката на упражненията</Text>
+      </TouchableOpacity>
 
       <View style={styles.panel}>
         <Text style={styles.panelTitle}>Данни за тялото</Text>
@@ -343,7 +431,7 @@ function AssessmentScreen({
   );
 }
 
-function PlanScreen({ result, onBack, onLogout }) {
+function PlanScreen({ result, onBack, onLogout, onOpenExercises }) {
   const goal = result.goal || {};
   const workouts = result.plan?.workouts || [];
   const nutrition = result.plan?.nutrition || {};
@@ -395,10 +483,54 @@ function PlanScreen({ result, onBack, onLogout }) {
         <TouchableOpacity style={styles.secondaryActionButton} onPress={onBack}>
           <Text style={styles.secondaryActionText}>Промени данните</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.secondaryActionButton} onPress={onOpenExercises}>
+          <Text style={styles.secondaryActionText}>Техника</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.buttonCompact} onPress={onLogout}>
           <Text style={styles.buttonText}>Изход</Text>
         </TouchableOpacity>
       </View>
+    </>
+  );
+}
+
+function ExerciseGuideScreen({ onBack }) {
+  return (
+    <>
+      <View style={styles.panel}>
+        <Text style={styles.panelTitle}>Техника на упражненията</Text>
+        <Text style={styles.panelHint}>
+          Виж основните точки за изпълнение преди да гониш по-голяма тежест или повече повторения.
+        </Text>
+      </View>
+
+      {exerciseGuides.map((exercise) => (
+        <View key={exercise.key} style={styles.guideCard}>
+          <Image
+            source={{ uri: exercise.image }}
+            style={styles.guideImage}
+            resizeMode="cover"
+          />
+          <View style={styles.guideContent}>
+            <Text style={styles.guideTitle}>{exercise.title}</Text>
+            <Text style={styles.guideMeta}>{exercise.muscles}</Text>
+            {exercise.cues.map((cue) => (
+              <Text key={cue} style={styles.cueText}>• {cue}</Text>
+            ))}
+            <Text style={styles.warningText}>{exercise.mistakes}</Text>
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() => Linking.openURL(exercise.sourceUrl)}
+            >
+              <Text style={styles.linkText}>Отвори пълното обяснение</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ))}
+
+      <TouchableOpacity style={styles.button} onPress={onBack}>
+        <Text style={styles.buttonText}>Назад</Text>
+      </TouchableOpacity>
     </>
   );
 }
@@ -551,35 +683,35 @@ function evaluateLocalGoal(payload, score, targetScore) {
 function buildLocalWorkoutPlan(goalResult) {
   const workoutsByRealism = {
     realistic: [
-      "Ден 1: лежанка, лицеви опори и набирания",
-      "Ден 2: клек, корем и мобилност",
-      "Ден 3: почивка или леко кардио",
-      "Ден 4: мъртва тяга, гръб и набирания",
-      "Ден 5: техника и умерен обем"
+      "Ден 1: Лежанка 4x5, дъмбел прес 3x8, лицеви опори 3xмакс, трицепс разгъване 3x12. Почивка 2-3 мин.",
+      "Ден 2: Клек 4x5, румънска тяга 3x8, напади 3x10 на крак, планк 3x45 сек. Почивка 2-3 мин.",
+      "Ден 3: Леко кардио 25 мин, мобилност за рамене и бедра 15 мин, разтягане.",
+      "Ден 4: Мъртва тяга 4x4, набирания 4xмакс, гребане с дъмбел 3x10, face pull 3x15. Почивка 2-3 мин.",
+      "Ден 5: Техника: лежанка 3x8 с лека тежест, клек 3x8, лицеви опори 3x12, корем 3 кръга."
     ],
     challenging: [
-      "Ден 1: тежка лежанка и набирания",
-      "Ден 2: клек, крака и корем",
-      "Ден 3: възстановяване и мобилност",
-      "Ден 4: мъртва тяга и гръб",
-      "Ден 5: обем за слабите упражнения",
-      "Ден 6: леко кардио и разтягане"
+      "Ден 1: Тежка лежанка 5x4, дъмбел прес 4x8, лицеви опори 4xмакс, трицепс кофички 3x8. Почивка 3 мин.",
+      "Ден 2: Клек 5x4, преден клек 3x6, напади 3x10, корем 4 серии. Почивка 3 мин.",
+      "Ден 3: Набирания 5xмакс, гребане 4x8, бицепс 3x12, лека мобилност за гръб.",
+      "Ден 4: Мъртва тяга 5x3, румънска тяга 3x8, хип тръст 3x10, задно бедро 3x12.",
+      "Ден 5: Обем за целта: избери най-слабото упражнение и направи 6 леки серии по 6-10 повторения.",
+      "Ден 6: Леко кардио 20 мин, разтягане, техника с празен лост."
     ],
     intensive: [
-      "Ден 1: лежанка плюс допълнителни лицеви опори",
-      "Ден 2: клек и техника",
-      "Ден 3: набирания, гръб и корем",
-      "Ден 4: мъртва тяга и задно бедро",
-      "Ден 5: повторение на най-слабите упражнения",
-      "Ден 6: лек обем, мобилност и възстановяване",
-      "Ден 7: пълна почивка"
+      "Ден 1: Лежанка 5x3, дъмбел прес 4x8, лицеви опори 5xмакс, трицепс 4x12. Почивка 3 мин.",
+      "Ден 2: Клек 5x3, паузиран клек 4x5, напади 3x12, планк 4x45 сек.",
+      "Ден 3: Набирания 6 серии, негативни набирания 3x5, гребане 4x10, бицепс 3x12.",
+      "Ден 4: Мъртва тяга 5x3, румънска тяга 4x6, хип тръст 4x8, задно бедро 3x12.",
+      "Ден 5: Повторение на целта: 70% тежест, 6x4 за основното упражнение, после 3 помощни упражнения по 3 серии.",
+      "Ден 6: Лек обем: лицеви опори 4x12, клек с лека тежест 3x10, набирания 4xсубмакс, мобилност.",
+      "Ден 7: Пълна почивка, сън, разходка и подготовка за следващата седмица."
     ],
     unrealistic: [
-      "Седмица 1: намали целта до междинен етап и тествай техника",
-      "Ден 1: лежанка и лицеви опори с умерена тежест",
-      "Ден 2: клек и мобилност",
-      "Ден 4: мъртва тяга и набирания",
-      "Ден 6: техника, разтягане и активна почивка"
+      "Седмица 1: Избери междинна цел: +5-10% сила или +2-5 повторения, вместо огромен скок наведнъж.",
+      "Ден 1: Лежанка 4x6 с умерена тежест, дъмбел прес 3x10, лицеви опори 3xмакс.",
+      "Ден 2: Клек 4x6, румънска тяга 3x8, напади 3x10, мобилност за глезени и бедра.",
+      "Ден 4: Мъртва тяга 4x4, набирания 4xсубмакс, гребане 3x10, face pull 3x15.",
+      "Ден 6: Техника и възстановяване: празен лост 20 мин, разтягане, леко кардио 15-20 мин."
     ]
   };
 
@@ -893,6 +1025,55 @@ const styles = StyleSheet.create({
     color: "#e2e8f0",
     fontSize: 14,
     lineHeight: 20
+  },
+  guideCard: {
+    backgroundColor: "#1f2937",
+    borderRadius: 8,
+    overflow: "hidden"
+  },
+  guideImage: {
+    backgroundColor: "#0f172a",
+    height: 190,
+    width: "100%"
+  },
+  guideContent: {
+    gap: 9,
+    padding: 16
+  },
+  guideTitle: {
+    color: "#ffffff",
+    fontSize: 20,
+    fontWeight: "800"
+  },
+  guideMeta: {
+    color: "#fb923c",
+    fontSize: 13,
+    fontWeight: "800"
+  },
+  cueText: {
+    color: "#e2e8f0",
+    fontSize: 14,
+    lineHeight: 20
+  },
+  warningText: {
+    color: "#cbd5e1",
+    fontSize: 14,
+    fontWeight: "700",
+    lineHeight: 20
+  },
+  linkButton: {
+    alignItems: "center",
+    borderColor: "#fb923c",
+    borderRadius: 8,
+    borderWidth: 1,
+    minHeight: 42,
+    justifyContent: "center",
+    marginTop: 2
+  },
+  linkText: {
+    color: "#fb923c",
+    fontSize: 14,
+    fontWeight: "800"
   },
   nutritionBox: {
     backgroundColor: "#111827",

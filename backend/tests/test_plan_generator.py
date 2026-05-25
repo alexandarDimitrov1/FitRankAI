@@ -41,6 +41,8 @@ class PlanGeneratorTests(unittest.TestCase):
         self.assertGreater(len(response["plan"]["workouts"]), 0)
         self.assertIn("FitRank score", response["aiPrompt"])
         self.assertIn("Target results", response["aiPrompt"])
+        self.assertIn("sets", response["aiPrompt"])
+        self.assertIn("4x5", response["plan"]["workouts"][0])
         self.assertIn("meals", response["plan"]["nutrition"])
 
 
