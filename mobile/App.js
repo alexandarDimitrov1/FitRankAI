@@ -509,7 +509,7 @@ function ExerciseGuideScreen({ onBack }) {
           <Image
             source={{ uri: exercise.image }}
             style={styles.guideImage}
-            resizeMode="cover"
+            resizeMode="contain"
           />
           <View style={styles.guideContent}>
             <Text style={styles.guideTitle}>{exercise.title}</Text>
@@ -1033,7 +1033,7 @@ const styles = StyleSheet.create({
   },
   guideImage: {
     backgroundColor: "#0f172a",
-    height: 190,
+    height: 240,
     width: "100%"
   },
   guideContent: {
